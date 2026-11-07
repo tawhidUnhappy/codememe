@@ -172,6 +172,63 @@ def cmd_render(a) -> None:
         print(f"lesson {n}: {out}")
 
 
+def cmd_upload(a) -> None:
+    import datetime as dt
+
+    from . import youtube
+    project = require(a.name)
+    plan = project.curriculum()
+    todo = parse_range(a.range, len(plan["lessons"]))
+    cfg = config()
+    playlist = None
+    slot = dt.datetime.strptime(a.schedule_start, "%Y-%m-%d %H:%M").astimezone() if a.schedule_start else None
+    done_today = 0
+    for n in todo:
+        video = project.video_path(n)
+        text_path = project.dir / "upload" / f"{n:03d}.json"
+        if not video.exists():
+            print(f"lesson {n}: not rendered, skipped")
+            continue
+        text = read_json(text_path) if text_path.exists() else None
+        if text is None:
+            lesson = read_json(project.lesson_path(n))
+            text = {"n": n, "title": f"{lesson['title']} - {project.meta['title']} (Day {n})", "description": lesson["takeaway"], "tags": []}
+        if text.get("youtube_id"):
+            print(f"lesson {n}: already uploaded ({text['youtube_id']})")
+            continue
+        text["description"] = text["description"].rstrip() + f"\n\n#Shorts #{project.meta['language'].replace('+', 'p')}"
+        publish_at = None
+        if slot:
+            publish_at = slot.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            done_today += 1
+            if done_today >= a.per_day:
+                slot, done_today = slot + dt.timedelta(days=1), 0
+        if a.dry_run:
+            print(f"lesson {n}: would upload {video.name} as {text['title']!r} ({publish_at or a.privacy})")
+            continue
+        vid = youtube.upload_video(video, text, a.privacy, publish_at)
+        if cfg.get("playlist"):
+            playlist = playlist or youtube.playlist_id(cfg["playlist"])
+            youtube.add_to_playlist(playlist, vid)
+        text["youtube_id"] = vid
+        write_json(text_path, text)
+        print(f"lesson {n}: https://youtube.com/shorts/{vid} ({publish_at or a.privacy})")
+
+
+def cmd_youtube_login(a) -> None:
+    from . import youtube
+    youtube.login()
+
+
+def cmd_public_check(a) -> None:
+    from .publiccheck import scan
+    problems = scan()
+    for p in problems:
+        print("-", p)
+    print("public-check: clean" if not problems else f"public-check: {len(problems)} problem(s) - do not commit/push")
+    sys.exit(1 if problems else 0)
+
+
 def cmd_status(a) -> None:
     project = require(a.name)
     meta = project.meta
@@ -216,6 +273,15 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--engine", choices=("kokoro", "drama3"), help="override config.json engine")
     p.add_argument("--fresh", action="store_true", help="re-render existing videos")
     p.set_defaults(fn=cmd_render)
+    sub.add_parser("youtube-login", help="sign in to YouTube once (opens the browser)").set_defaults(fn=cmd_youtube_login)
+    sub.add_parser("public-check", help="fail if a tracked/staged file holds a key, token or personal path").set_defaults(fn=cmd_public_check)
+    p = sub.add_parser("upload", help="upload rendered videos to YouTube (uses upload text if imported)")
+    p.add_argument("name"), p.add_argument("range", help="3, 1-10 or all")
+    p.add_argument("--privacy", choices=("private", "unlisted", "public"), default="private")
+    p.add_argument("--schedule-start", help='schedule instead: first publish time, local, "YYYY-MM-DD HH:MM"')
+    p.add_argument("--per-day", type=int, default=1, help="with --schedule-start: videos per day")
+    p.add_argument("--dry-run", action="store_true")
+    p.set_defaults(fn=cmd_upload)
     p = sub.add_parser("status")
     p.add_argument("name")
     p.set_defaults(fn=cmd_status)

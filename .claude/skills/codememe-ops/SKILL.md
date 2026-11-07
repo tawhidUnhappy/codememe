@@ -20,7 +20,10 @@ Entry: `./run.sh <command>` (`codememe/cli.py`). Lint: `.venv/bin/python -m ruff
 - `render.py` takes -> caption-chunk stills -> ffmpeg concat -> mp4 (hard stop over `max_seconds`)
 - `topics/<language>.json` area checklists that make "complete course" enforceable
 
+- `youtube.py` stdlib OAuth (loopback+PKCE) + resumable upload; `publiccheck.py` secret/personal scan (pre-commit hook)
+
 ## Ground rules
+- **Public repo**: run `./run.sh public-check` before every commit/push; never print/paste client_secret or tokens; commits use the GitHub noreply identity.
 - Code only in git. Courses, config.json, meme pictures, renders are local and gitignored; no personal paths in code.
 - A bad lesson means fixing the prompt/checker for every lesson, not hand-editing that lesson's JSON.
 - Verify by running: `./run.sh render <zz-test> all --silent` and LOOK at frames; real voice via config.json.

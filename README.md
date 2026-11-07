@@ -50,4 +50,26 @@ Run `new <language>` - it works for any name. To make completeness **enforced**,
 `topics/<language>.json` (`{"language": ..., "areas": [{"id", "name"}]}`); to run its code, add a branch to
 `codememe/runcheck.py`.
 
+## YouTube upload
+
+1. In Google Cloud: create a project, enable **YouTube Data API v3**, set up the OAuth consent screen
+   (add your channel's Google account as a test user, then publish the app), create an **OAuth client ID
+   of type Desktop app** and download its JSON.
+2. Save it as `global/youtube/client_secret.json` (gitignored), then `./run.sh youtube-login` once - it
+   opens the browser; the token is kept in `global/youtube/token.json` (gitignored).
+3. `./run.sh upload <name> 1-6 --privacy private` or schedule: `--schedule-start "2026-11-09 18:00" --per-day 1`.
+   Uses the title/description/tags from `upload-prompt` when imported; adds `#Shorts`; puts each video in
+   the playlist named by `"playlist"` in `config.json`; records the video id, so a re-run skips finished ones.
+
+YouTube limits: the default quota fits about 6 uploads a day (a quota stop is clean - run it again the next
+day), and an API project that Google has not audited uploads private only; flip them public in Studio or
+apply for the YouTube API compliance audit.
+
+## The repo is public
+
+Secrets and personal data never go in git: `config.json`, `global/` (voice, OAuth client and token), `projects/`
+and `assets/memes/*` are gitignored, and `./run.sh public-check` scans every tracked/staged file for keys,
+tokens, e-mails and home paths. A pre-commit hook runs it (re-create it after a fresh clone:
+`printf '#!/usr/bin/env bash\n./run.sh public-check\n' > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit`).
+
 See `.claude/skills/codememe-ops/SKILL.md` for the code map and what has bitten before.

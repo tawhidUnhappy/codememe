@@ -13,3 +13,7 @@ global/
 *.mp3
 assets/memes/*
 !assets/memes/README.md
+
+# OAuth secrets/tokens anywhere, never tracked
+*client_secret*.json
+token*.json
