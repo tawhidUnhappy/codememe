@@ -71,10 +71,13 @@ def cmd_lesson_prompt(a) -> None:
     neighbours = [n for n in range(max(1, first - 2), min(len(plan["lessons"]), numbers[-1] + 2) + 1)]
     memes = sorted(p.name for p in MEMES.glob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png")) or ["(none - plain cards are used)"]
     from .memegen import catalog, curated
+    from .sources import pack_text, research
     known = catalog()
     memegen = "\n".join(f"- `{k}`: {v}" for k, v in curated().items() if not known or k in known)
     prompt = fill((PROMPTS / "lesson.md").read_text(), {
         "MEMEGEN": memegen,
+        "RESEARCH": "\n".join(f"- lesson {x['n']} ({x['title']}):\n{pack_text(research(project.meta, x))}"
+                              for x in plan["lessons"] if x["n"] in numbers),
         "TITLE": project.meta["title"], "LANGUAGE": project.meta["language"],
         "RANGE": f"{numbers[0]}-{numbers[-1]}" if len(numbers) > 1 else numbers[0],
         "PLAN": _plan_text(plan, neighbours), "TAUGHT": taught_text,
@@ -219,6 +222,27 @@ def cmd_upload(a) -> None:
         print(f"lesson {n}: https://youtube.com/shorts/{vid} ({publish_at or a.privacy})")
 
 
+def cmd_research(a) -> None:
+    from .sources import pack_text, research
+    project = require(a.name)
+    plan = project.curriculum()
+    for n in parse_range(a.range, len(plan["lessons"])):
+        x = plan["lessons"][n - 1]
+        print(f"lesson {n}: {x['title']}\n{pack_text(research(project.meta, x))}\n")
+
+
+def cmd_music_fetch(a) -> None:
+    from .sources import music_fetch
+    path = music_fetch(a.query)
+    if a.use:
+        import json
+        cfg_path = Path(__file__).resolve().parent.parent / "config.json"
+        cfg = json.loads(cfg_path.read_text()) if cfg_path.exists() else {}
+        cfg["music"] = str(path)
+        cfg_path.write_text(json.dumps(cfg, indent=2) + "\n")
+        print("config.json: music set")
+
+
 def cmd_youtube_login(a) -> None:
     from . import youtube
     youtube.login()
@@ -278,6 +302,12 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--fresh", action="store_true", help="re-render existing videos")
     p.set_defaults(fn=cmd_render)
     sub.add_parser("youtube-login", help="sign in to YouTube once (opens the browser)").set_defaults(fn=cmd_youtube_login)
+    p = sub.add_parser("research", help="pull reference material (docs, Wikipedia, Stack Overflow) for lessons")
+    p.add_argument("name"), p.add_argument("range")
+    p.set_defaults(fn=cmd_research)
+    p = sub.add_parser("music-fetch", help="download a CC0 background track from Openverse")
+    p.add_argument("query"), p.add_argument("--use", action="store_true", help="set it as the music in config.json")
+    p.set_defaults(fn=cmd_music_fetch)
     sub.add_parser("public-check", help="fail if a tracked/staged file holds a key, token or personal path").set_defaults(fn=cmd_public_check)
     p = sub.add_parser("upload", help="upload rendered videos to YouTube (uses upload text if imported)")
     p.add_argument("name"), p.add_argument("range", help="3, 1-10 or all")

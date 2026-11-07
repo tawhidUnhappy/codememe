@@ -125,5 +125,35 @@
    "id": "ecosystem",
    "name": "Popular libraries tour: requests, numpy, pandas, flask, pytest"
   }
- ]
+ ],
+ "docs": {
+  "syntax-basics": "https://docs.python.org/3/tutorial/introduction.html",
+  "variables": "https://docs.python.org/3/tutorial/introduction.html",
+  "numbers": "https://docs.python.org/3/tutorial/introduction.html",
+  "strings": "https://docs.python.org/3/tutorial/introduction.html",
+  "booleans": "https://docs.python.org/3/tutorial/controlflow.html",
+  "input-output": "https://docs.python.org/3/tutorial/inputoutput.html",
+  "conditionals": "https://docs.python.org/3/tutorial/controlflow.html",
+  "loops": "https://docs.python.org/3/tutorial/controlflow.html",
+  "lists": "https://docs.python.org/3/tutorial/datastructures.html",
+  "tuples": "https://docs.python.org/3/tutorial/datastructures.html",
+  "sets": "https://docs.python.org/3/tutorial/datastructures.html",
+  "dicts": "https://docs.python.org/3/tutorial/datastructures.html",
+  "functions": "https://docs.python.org/3/tutorial/controlflow.html",
+  "lambda-functional": "https://docs.python.org/3/tutorial/controlflow.html",
+  "generators": "https://docs.python.org/3/tutorial/classes.html",
+  "classes": "https://docs.python.org/3/tutorial/classes.html",
+  "inheritance": "https://docs.python.org/3/tutorial/classes.html",
+  "errors": "https://docs.python.org/3/tutorial/errors.html",
+  "modules": "https://docs.python.org/3/tutorial/modules.html",
+  "stdlib": "https://docs.python.org/3/tutorial/stdlib.html",
+  "dataclasses": "https://docs.python.org/3/library/dataclasses.html",
+  "type-hints": "https://docs.python.org/3/library/typing.html",
+  "testing-debugging": "https://docs.python.org/3/library/unittest.html",
+  "concurrency": "https://docs.python.org/3/library/threading.html",
+  "performance": "https://docs.python.org/3/library/timeit.html",
+  "memory-internals": "https://docs.python.org/3/library/gc.html",
+  "decorators": "https://docs.python.org/3/library/functools.html",
+  "context-managers": "https://docs.python.org/3/library/contextlib.html"
+ }
 }

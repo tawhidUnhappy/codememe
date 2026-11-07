@@ -139,6 +139,8 @@ def check_lesson(lesson: dict, meta: dict, plan: dict | None, run_code: bool = T
         if UNSPEAKABLE.search(say):
             bad.append(f"{where} beat {j}: \"say\" holds code symbols; narration is plain speech: {say[:40]}")
         total += _words(say)
+        if "caption" in beat and (not isinstance(beat["caption"], str) or not beat["caption"].strip()):
+            bad.append(f'{where} beat {j}: "caption" must be non-empty text (or leave it out).')
         if beat.get("show") not in SHOWS:
             bad.append(f'{where} beat {j}: "show" must be one of {", ".join(SHOWS)}.')
         focus = beat.get("focus")

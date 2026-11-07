@@ -55,7 +55,7 @@ def render_lesson(project: Project, n: int, engine: str = "kokoro", force: bool 
             padded = tmpd / f"a{bi:02d}.wav"
             _ffmpeg("-i", str(take), "-af", f"apad=pad_dur={gap}", str(padded))
             audio_parts.append(padded)
-            pieces = chunks(beat["say"])
+            pieces = chunks(beat.get("caption") or beat["say"])
             weights = [max(1, len(p)) for p in pieces]
             for ci, piece in enumerate(pieces):
                 still = tmpd / f"f{bi:02d}_{ci:02d}.png"
@@ -78,12 +78,13 @@ def render_lesson(project: Project, n: int, engine: str = "kokoro", force: bool 
         part = out_path.with_name(out_path.stem + ".part.mp4")
         cmd = ["-f", "concat", "-safe", "0", "-i", str(listing), "-i", str(voice)]
         music = cfg.get("music")
+        loud = f"loudnorm=I={cfg['loudness_lufs']}:TP=-1.5:LRA=11"
         if music and Path(music).exists():
             cmd += ["-stream_loop", "-1", "-i", str(music), "-filter_complex",
-                    f"[2:a]volume={cfg['music_volume_db']}dB[m];[1:a][m]amix=inputs=2:duration=first:normalize=0[a]",
+                    f"[2:a]volume={cfg['music_volume_db']}dB[m];[1:a][m]amix=inputs=2:duration=first:normalize=0[mix];[mix]{loud}[a]",
                     "-map", "0:v", "-map", "[a]"]
         else:
-            cmd += ["-map", "0:v", "-map", "1:a"]
+            cmd += ["-map", "0:v", "-map", "1:a", "-af", loud]
         cmd += ["-vf", f"fps={fps},format=yuv420p", "-c:v", "libx264", "-preset", "medium", "-crf", "17",
                 "-c:a", "aac", "-b:a", "192k", "-t", f"{total:.3f}", "-movflags", "+faststart", str(part)]
         _ffmpeg(*cmd)

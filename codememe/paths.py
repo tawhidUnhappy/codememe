@@ -16,7 +16,7 @@ DEFAULTS = {
     "width": 1080, "height": 1920, "fps": 30, "voice": "af_heart", "engine": "kokoro", "speech_exe": None, "drama3_model": None, "voice_gguf": None,
     "drama3_headroom_gb": 1.5,
     "kokoro_python": None, "kokoro_model_dir": None,
-    "music": None, "music_volume_db": -24, "gap_seconds": 0.35, "max_seconds": 59,
+    "music": None, "music_volume_db": -24, "loudness_lufs": -14, "gap_seconds": 0.35, "max_seconds": 59,
 }
 
 

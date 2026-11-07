@@ -79,7 +79,7 @@ def _code_card(img, d, w, lesson, focus):
     size = max(30, min(66, int((w - 200) / (0.6 * max(widest, 12)))))
     fnt, step = font("mono", size), int(size * 1.55)
     height = n * step + 120
-    top = 250 + max(0, (1300 - height) // 3)
+    top = 250 + max(0, (1250 - height) // 2)
     d.rounded_rectangle([40, top, w - 40, top + height], radius=28, fill=CARD)
     for i, c in enumerate(((255, 95, 86), (255, 189, 46), (39, 201, 63))):
         d.ellipse([80 + i * 46, top + 34, 104 + i * 46, top + 58], fill=c)
@@ -102,8 +102,10 @@ def _code_card(img, d, w, lesson, focus):
 def _output_card(d, w, lesson):
     out = str(lesson["code"].get("expected_output", "")).strip() or "(no output)"
     err = lesson["code"].get("expect") == "error"
-    top = 330
-    d.rounded_rectangle([40, top, w - 40, top + 760], radius=28, fill=(8, 9, 14), outline=(255, 95, 86) if err else (39, 201, 63), width=4)
+    rows = sum(len(wrap(d, ln, font("mono", 48), w - 200)) or 1 for ln in out.splitlines()[:9])
+    height = min(760, 190 + rows * 70)
+    top = 250 + (1250 - height) // 2
+    d.rounded_rectangle([40, top, w - 40, top + height], radius=28, fill=(8, 9, 14), outline=(255, 95, 86) if err else (39, 201, 63), width=4)
     d.text((90, top + 36), "$ run" if not err else "$ run  (error!)", font=font("monobold", 44), fill=ACCENT)
     fnt = font("mono", 48)
     y = top + 130
@@ -114,7 +116,7 @@ def _output_card(d, w, lesson):
 
 
 def _takeaway_card(d, w, text):
-    top = 380
+    top = 480
     d.rounded_rectangle([40, top, w - 40, top + 700], radius=36, fill=CARD, outline=ACCENT, width=6)
     d.text((90, top + 40), "REMEMBER", font=font("bold", 48), fill=ACCENT)
     fnt = font("bold", 78)
@@ -130,11 +132,11 @@ def render_frame(lesson: dict, beat: dict, caption: str, series: str, total: int
     _header(d, w, series, lesson["n"], total)
     show = beat["show"]
     if show == "meme":
-        card = meme_image(lesson["meme"], w - 120, 1000)
+        card = meme_image(lesson["meme"], w - 120, 1120)
         mask = Image.new("L", card.size, 0)
         ImageDraw.Draw(mask).rounded_rectangle([0, 0, card.width, card.height], radius=36, fill=255)
         img.paste(card, (60, 250), mask)
-        y = 1290
+        y = 1400
         for ln in wrap(d, lesson["hook"].upper(), font("bold", 54), w - 120)[:2]:
             d.text((60, y), ln, font=font("bold", 54), fill=ACCENT)
             y += 66

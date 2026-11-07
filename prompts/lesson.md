@@ -7,6 +7,11 @@ Short per day, vertical video, under 59 seconds, English narration. Write **less
 ## What earlier lessons already taught (do not re-explain; build on it)
 {{TAUGHT}}
 
+## Reference material pulled from free sources (official docs, Wikipedia, real Stack Overflow questions)
+Use it for correctness and correct terminology, and let the "real beginner question" lines guide what is
+confusing and therefore funny. The matching is automatic and sometimes loose: ignore anything off-topic. Do not copy it.
+{{RESEARCH}}
+
 ## Lessons to write now
 {{TODO}}
 
@@ -32,7 +37,7 @@ Reply with ONE JSON block and nothing else:
         "expected_output": "exactly what it prints (or, for expect=error, a piece of the error message)"
       },
       "beats": [
-        {"say": "spoken sentence(s)", "show": "meme"},
+        {"say": "spoken sentence(s)", "show": "meme"},   // optional "caption": the on-screen text when it should differ from the speech, e.g. say "hello dot p y", caption "hello.py"
         {"say": "...", "show": "code", "focus": [1, 2]},
         {"say": "...", "show": "output"},
         {"say": "...", "show": "takeaway"}

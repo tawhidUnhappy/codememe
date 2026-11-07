@@ -16,12 +16,15 @@ Entry: `./run.sh <command>` (`codememe/cli.py`). Lint: `.venv/bin/python -m ruff
 - `checks.py` the contracts - **moves together with `prompts/*.md`** (curriculum.md, lesson.md, upload.md)
 - `runcheck.py` runs lesson code per language; missing toolchain = warning
 - `memegen.py` real meme templates (catalog from api.memegen.link, background + text boxes from the memegen repo, drawn locally = no watermark; cache global/memegen/); `assets/memegen_curated.json` = slot hints shown to the LLM (verify a new entry by rendering it and LOOKING). The public memegen server always stamps a watermark - never crop it; render locally instead.
+- `sources.py` free key-less servers: docs (topics/<lang>.json "docs"), Wikipedia, Stack Exchange (300/day), JokeAPI, Openverse CC0 music; cached in global/sources; relevance filters (a wrong Wikipedia hit once said Go for a Python lesson)
 - `memecards.py` meme layouts (built-in fallbacks), `frames.py` every still (header, code card via Pygments, output, takeaway, captions)
 - `tts.py` engines: kokoro (`scripts/kokoro_worker.py`), drama3 (`scripts/drama3_worker.py` = remanga's worker + `voice_gguf`, the user's own voice file, one sentence per request), `silent`; takes cached by hash
 - `render.py` takes -> caption-chunk stills -> ffmpeg concat -> mp4 (hard stop over `max_seconds`)
 - `topics/<language>.json` area checklists that make "complete course" enforceable
 
 - `youtube.py` stdlib OAuth (loopback+PKCE) + resumable upload; `publiccheck.py` secret/personal scan (pre-commit hook)
+
+- beats may carry `caption` (on-screen text when it differs from speech: "hello dot p y" -> hello.py); loudnorm is in render.py (peak-limited, ~-17 LUFS)
 
 ## Ground rules
 - **Public repo**: run `./run.sh public-check` before every commit/push; never print/paste client_secret or tokens; commits use the GitHub noreply identity.

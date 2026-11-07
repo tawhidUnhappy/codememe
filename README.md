@@ -24,6 +24,15 @@ with **one JSON block**, codememe checks it before saving anything, then renders
    takeaway, big captions, and Kokoro-82M narration (optional background music, ducked).
 5. **Upload** - `upload-prompt` -> titles, descriptions, tags and a pinned comment per video.
 
+## Material from free servers (no keys)
+
+Lessons are written from sources, not memory. `./run.sh research <name> 1-10` (and every `lesson-prompt`) pulls,
+cached in `global/sources/`: the matching paragraphs of the **official docs** (mapped per area in
+`topics/<language>.json`), the **Wikipedia** summary, and the **real Stack Overflow questions** beginners ask about
+the concept (Stack Exchange API) - what people get stuck on is the best meme. **Memes** come from memegen (below),
+**music** from Openverse: `./run.sh music-fetch "lofi hip hop" --use` downloads a CC0/public-domain track (no
+attribution needed) and sets it in `config.json`. Everything fails soft when offline.
+
 ## Memes
 
 Free, no key, no account: codememe uses the template data of the open-source
