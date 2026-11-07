@@ -1,5 +1,6 @@
 You write the Shorts of the series **{{TITLE}}** - a complete {{LANGUAGE}} course, one meme-style
-Short per day, vertical video, under 59 seconds, English narration. Write **lessons {{RANGE}}**.
+Short per day: vertical video, under 59 seconds, English narration, made to look like a real, fast YouTube
+Short - **not slides**. Write **lessons {{RANGE}}**.
 
 ## The course plan (already decided)
 {{PLAN}}
@@ -15,59 +16,60 @@ confusing and therefore funny. The matching is automatic and sometimes loose: ig
 ## Lessons to write now
 {{TODO}}
 
-Reply with ONE JSON block and nothing else:
+## Accuracy is the first rule
+A beginner must be able to follow your lesson on their own computer and have it work. So:
+- State only things you are sure are current and true. Check each fact against the official docs (list the
+  pages in `sources`, official docs first). If you are not sure, leave it out.
+- Be complete for a beginner: what to click or type, **which command on which operating system** (for
+  {{LANGUAGE}}, say where Windows / macOS / Linux differ), where the file must be, what they will see.
+- Never give outdated advice. When a tool or installer changed recently, say what is current.
+- A reviewer will check every lesson against its sources.
+
+## Reply format - ONE JSON block and nothing else
 
 ```json
 {
   "kind": "lessons",
-  "lessons": [
-    {
-      "n": 12,
-      "title": "same as the plan",
-      "hook": "THE ON-SCREEN HEADLINE, 10 words max",
-      "meme": {
-        "template": "memegen | classic | choice | brain",
-        "id": "only for memegen: a template id from the list below",
-        "captions": ["..."],
-        "image": "only for classic, optional: a file from assets/memes: {{MEME_FILES}}"
-      },
-      "code": {
-        "source": "complete, runnable program, 12 lines max, 34 columns max",
-        "expect": "ok",
-        "expected_output": "exactly what it prints (or, for expect=error, a piece of the error message)"
-      },
-      "beats": [
-        {"say": "spoken sentence(s)", "show": "meme"},   // optional "caption": the on-screen text when it should differ from the speech, e.g. say "hello dot p y", caption "hello.py"
-        {"say": "...", "show": "code", "focus": [1, 2]},
-        {"say": "...", "show": "output"},
-        {"say": "...", "show": "takeaway"}
-      ],
-      "takeaway": "one memorable line, 14 words max"
-    }
-  ]
+  "lessons": [{
+    "n": 12,
+    "title": "same as the plan",
+    "hook": "THE HEADLINE, 10 words max",
+    "sources": ["https://official-docs-page", "..."],
+    "code": {"source": "complete runnable program, 12 lines, 34 columns max", "expect": "ok",
+             "expected_output": "exactly what it prints (for expect=error: a piece of the error text)", "filename": "hello.py"},
+    "beats": [
+      {"say": "plain spoken sentence(s)", "caption": "optional: on-screen text when it differs from speech",
+       "scenes": [ {"type": "meme", "id": "drake", "captions": ["...", "..."]},
+                   {"type": "text", "text": "BIG WORDS"} ]},
+      "... 5-8 beats ..."
+    ],
+    "takeaway": "one memorable line, 14 words max"
+  }]
 }
 ```
 
-**Prefer `"template": "memegen"`** - real, recognisable meme pictures. Give its `id` and exactly as many
-`captions` as the template has slots, each **45 characters max**, written for that slot (the order below
-says what each slot is). Use a different template for most lessons in your reply. Ids that work (any other
-memegen template id is accepted too, but only if you are sure it exists and you know its slots):
-
+## Scenes - the picture changes about every 2 seconds, always full screen
+Every beat has `scenes`: **one scene for every ~7 spoken words** (checked). They play in order across the
+beat. Mix them - never three of the same kind in a row:
+- `{"type": "meme", "id": ..., "captions": [...]}` - a real meme template, full-screen. Exactly as many
+  captions as slots, each 45 characters max, written for that slot. Different template for most scenes.
+  Ids that work (the order says what each slot is):
 {{MEMEGEN}}
+- `{"type": "clip", "query": "what to search a GIF or stock video for", "text": "OVERLAY TEXT"}` - a
+  full-screen reaction GIF / video clip (text is also shown if none is found). Queries are 1-3 plain words
+  ("facepalm", "typing fast", "mind blown", "loading").
+- `{"type": "terminal", "os": "windows|mac|linux", "lines": [{"cmd": "..."}, {"out": "..."}]}` - a real
+  terminal; the commands are typed live and the output appears. Use real, correct commands and output; one
+  row = one line, 40 columns max, 9 rows max.
+- `{"type": "code", "focus": [first, last], "typing": true}` - the lesson's `code` in an editor, typed live
+  (`typing`) or whole with the `focus` lines lit.
+- `{"type": "text", "text": "BIG WORDS"}` - kinetic text on a moving colour gradient, 60 characters max.
+- The last scene of the last beat is `{"type": "takeaway"}`.
 
-Built-in fallbacks: **classic** = 1 or 2 captions (top / bottom text over a picture or card);
-**choice** = exactly 2 captions (rejected thing on top, approved thing below); **brain** = exactly 4
-captions, getting smarter each level (the last is the "galaxy brain" answer).
-
-Rules - these are checked by software, and the code is actually RUN:
-- The code must run as-is in {{LANGUAGE}} and print exactly `expected_output`. Complete program
-  (include `main`/imports where the language needs them). `"expect": "error"` is allowed to teach an
-  error message (the program must fail, and `expected_output` must be inside the error text).
-- Beats: first beat shows the meme (the hook, a funny line), the last shows the takeaway, at least one
-  shows the code (`focus` = [first, last] line numbers to highlight while that beat is spoken), usually
-  one shows the output. 4-7 beats. Total narration **under 125 words**.
-- `say` is plain spoken English: no symbols, no code, no markdown, no emoji. Say code aloud as words
-  ("x equals five"), never write it. Numbers as words when short.
-- The meme is the hook, the code is the lesson: funny but the concept must actually be taught
-  correctly. Casual, quick, friendly. Never mock the learner.
-- Vary the meme template and the joke angle across the lessons in your reply.
+## Rules (checked by software; the code is actually RUN)
+- The code must run as-is and print exactly `expected_output` (`"expect": "error"` may teach an error: it
+  must fail, and `expected_output` must be inside the error text).
+- Narration is **under 125 words in total**, plain spoken English: no symbols, no code, no markdown, no
+  emoji. Say code as words ("python hello dot p y"); use `caption` for what should be *shown* ("python hello.py").
+- Casual, quick, friendly, correct. Open with a hook that is funny; the concept must be taught properly.
+  Never mock the learner. Vary the joke angle across the lessons in your reply.

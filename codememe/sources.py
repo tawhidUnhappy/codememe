@@ -82,8 +82,16 @@ def stackoverflow(language: str, concept: str, n: int = 4) -> list[str]:
 
 def docs_snippets(language: str, area: str, concepts: list[str], n: int = 2) -> list[str]:
     path = TOPICS / f"{language.lower().replace('+', 'p')}.json"
-    url = (read_json(path).get("docs", {}) if path.exists() else {}).get(area)
-    raw = cached(url) if url else None
+    urls = (read_json(path).get("docs", {}) if path.exists() else {}).get(area) or []
+    urls = [urls] if isinstance(urls, str) else urls
+    out: list[str] = []
+    for url in urls:
+        out += _docs_page(url, language, concepts, n)
+    return out[:n + 1]
+
+
+def _docs_page(url: str, language: str, concepts: list[str], n: int) -> list[str]:
+    raw = cached(url)
     if not raw:
         return []
     skip = {language.lower(), "the", "and", "with", "from", "for", "vs", "str", "int"}

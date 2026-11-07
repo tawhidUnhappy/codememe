@@ -127,7 +127,13 @@
   }
  ],
  "docs": {
-  "syntax-basics": "https://docs.python.org/3/tutorial/introduction.html",
+  "syntax-basics": [
+   "https://docs.python.org/3/tutorial/introduction.html",
+   "https://docs.python.org/3/using/windows.html",
+   "https://docs.python.org/3/using/mac.html",
+   "https://docs.python.org/3/using/unix.html",
+   "https://docs.python.org/3/using/cmdline.html"
+  ],
   "variables": "https://docs.python.org/3/tutorial/introduction.html",
   "numbers": "https://docs.python.org/3/tutorial/introduction.html",
   "strings": "https://docs.python.org/3/tutorial/introduction.html",

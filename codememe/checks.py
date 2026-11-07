@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 
-from .paths import MEMES, TOPICS, read_json
+from .paths import TOPICS, read_json
 from .runcheck import run_snippet
 
 SHOWS = ("meme", "code", "output", "takeaway")
@@ -68,8 +68,57 @@ def _words(text: str) -> int:
     return len(re.findall(r"[A-Za-z0-9']+", text))
 
 
+SCENE_TYPES = ("meme", "clip", "terminal", "code", "text", "takeaway")
+SECONDS_PER_SCENE_WORDS = 7      # a scene per ~7 spoken words keeps the picture changing every ~2.5 s
+MAX_TERMINAL_WIDTH = 40
+
+
+def _check_scene(spec: dict, where: str, n_code_lines: int, known_memes: dict) -> list[str]:
+    bad: list[str] = []
+    kind = spec.get("type")
+    if kind not in SCENE_TYPES:
+        return [f'{where}: scene type must be one of {", ".join(SCENE_TYPES)} (got {kind!r}).']
+    if kind == "meme":
+        info = known_memes.get(spec.get("id"))
+        caps = spec.get("captions")
+        if known_memes and info is None:
+            bad.append(f'{where}: meme id "{spec.get("id")}" is not a memegen template (use one from the list).')
+        elif not isinstance(caps, list) or not caps or (info and len(caps) != info["lines"]):
+            bad.append(f'{where}: the "{spec.get("id")}" meme needs exactly {info["lines"] if info else "the right number of"} captions.')
+        else:
+            bad += [f'{where}: meme caption "{str(c)[:20]}..." is over 45 characters.' for c in caps if len(str(c)) > 45]
+    elif kind == "clip":
+        if not str(spec.get("query", "")).strip() or not str(spec.get("text", "")).strip():
+            bad.append(f'{where}: a clip needs "query" (what to search a GIF/video for) and "text" (overlay text, also used if no clip is found).')
+        if len(str(spec.get("text", ""))) > 40:
+            bad.append(f"{where}: clip text is over 40 characters.")
+    elif kind == "text":
+        if not str(spec.get("text", "")).strip() or len(spec["text"]) > 60:
+            bad.append(f'{where}: a text scene needs "text" of 1-60 characters.')
+    elif kind == "terminal":
+        if spec.get("os") not in ("windows", "mac", "linux"):
+            bad.append(f'{where}: terminal "os" must be windows, mac or linux.')
+        rows = spec.get("lines")
+        if not isinstance(rows, list) or not rows or len(rows) > 9:
+            bad.append(f'{where}: terminal "lines" must be 1-9 rows of {{"cmd": ...}} or {{"out": ...}}.')
+        else:
+            for r in rows:
+                prompt = len(r.get("prompt", "")) or {"windows": 15, "mac": 12, "linux": 10}.get(spec.get("os"), 12)
+                text = r.get("cmd", r.get("out"))
+                if not isinstance(text, str) or ("cmd" in r) == ("out" in r):
+                    bad.append(f'{where}: each terminal row has exactly one of "cmd" or "out".')
+                elif "cmd" in r and prompt + len(text) > MAX_TERMINAL_WIDTH + 4:
+                    bad.append(f"{where}: terminal command too long for the screen: {text[:30]}...")
+    elif kind == "code":
+        focus = spec.get("focus")
+        if focus is not None and not (isinstance(focus, list) and len(focus) == 2 and 1 <= focus[0] <= focus[1] <= max(n_code_lines, 1)):
+            bad.append(f'{where}: "focus" must be [first, last] line numbers inside the code.')
+    return bad
+
+
 def check_lesson(lesson: dict, meta: dict, plan: dict | None, run_code: bool = True) -> tuple[list[str], list[str]]:
-    """(problems, warnings) for one lesson."""
+    """(problems, warnings) for one lesson (format 2: beats made of full-screen scenes)."""
+    from .memegen import catalog
     bad: list[str] = []
     warn: list[str] = []
     n = lesson.get("n")
@@ -79,39 +128,11 @@ def check_lesson(lesson: dict, meta: dict, plan: dict | None, run_code: bool = T
     for key in ("title", "hook", "takeaway"):
         if not str(lesson.get(key, "")).strip():
             bad.append(f'{where}: missing "{key}".')
-    if len(str(lesson.get("hook", "")).split()) > 10:
-        bad.append(f"{where}: hook is over 10 words - it is the on-screen headline.")
     if len(str(lesson.get("takeaway", "")).split()) > 14:
         bad.append(f"{where}: takeaway is over 14 words.")
-
-    meme = lesson.get("meme") or {}
-    template = meme.get("template")
-    caps = meme.get("captions")
-    need = {"classic": (1, 2), "choice": (2, 2), "brain": (4, 4)}.get(template)
-    if template == "memegen":
-        from .memegen import catalog
-        known = catalog()
-        info = known.get(meme.get("id"))
-        if known and info is None:
-            bad.append(f'{where}: meme.id "{meme.get("id")}" is not a memegen template (use one from the list in the prompt).')
-        elif info and (not isinstance(caps, list) or len(caps) != info["lines"]):
-            bad.append(f'{where}: the "{meme["id"]}" meme needs exactly {info["lines"]} captions.')
-        elif not known:
-            warn.append(f"{where}: memegen catalog unavailable (offline) - meme.id not checked.")
-        need = (1, 8)
-        for c in caps if isinstance(caps, list) else []:
-            if len(str(c)) > 45:
-                bad.append(f'{where}: meme caption "{str(c)[:20]}..." is over 45 characters.')
-    if need is None:
-        bad.append(f'{where}: meme.template must be one of {", ".join(TEMPLATES)}.')
-    elif not isinstance(caps, list) or not need[0] <= len(caps) <= need[1] or not all(str(c).strip() for c in caps):
-        bad.append(f"{where}: the {template} meme needs {need[0] if need[0] == need[1] else f'{need[0]}-{need[1]}'} captions.")
-    else:
-        for c in caps:
-            if len(str(c)) > 60:
-                bad.append(f'{where}: meme caption "{c[:20]}..." is over 60 characters.')
-    if meme.get("image") and not (MEMES / meme["image"]).exists():
-        warn.append(f'{where}: assets/memes/{meme["image"]} is missing - a plain card is used instead.')
+    srcs = lesson.get("sources")
+    if not isinstance(srcs, list) or not srcs or not all(str(u).startswith("http") for u in srcs):
+        bad.append(f'{where}: "sources" must list the URLs (official docs first) every factual statement was checked against.')
 
     code = lesson.get("code") or {}
     source = str(code.get("source", ""))
@@ -120,44 +141,50 @@ def check_lesson(lesson: dict, meta: dict, plan: dict | None, run_code: bool = T
         bad.append(f"{where}: code.source is empty.")
     if len(lines) > MAX_CODE_LINES:
         bad.append(f"{where}: code is {len(lines)} lines; the screen fits {MAX_CODE_LINES}.")
-    for ln in lines:
-        if len(ln.expandtabs(4)) > MAX_CODE_WIDTH:
-            bad.append(f"{where}: code line over {MAX_CODE_WIDTH} characters: {ln.strip()[:30]}...")
-            break
+    if any(len(ln.expandtabs(4)) > MAX_CODE_WIDTH for ln in lines):
+        bad.append(f"{where}: a code line is over {MAX_CODE_WIDTH} characters.")
     if code.get("expect", "ok") not in ("ok", "error"):
         bad.append(f'{where}: code.expect must be "ok" or "error".')
 
     beats = lesson.get("beats")
-    if not isinstance(beats, list) or len(beats) < 3:
-        bad.append(f"{where}: beats must be a list of at least 3.")
-        return bad, warn
-    total = 0
+    if not isinstance(beats, list) or len(beats) < 4:
+        return [*bad, f"{where}: beats must be a list of at least 4."], warn
+    known = catalog()
+    total, kinds = 0, []
     for j, beat in enumerate(beats, 1):
+        bw = f"{where} beat {j}"
         say = str(beat.get("say", "")).strip()
+        words = _words(say)
+        total += words
         if not say:
-            bad.append(f'{where} beat {j}: empty "say".')
+            bad.append(f'{bw}: empty "say".')
         if UNSPEAKABLE.search(say):
-            bad.append(f"{where} beat {j}: \"say\" holds code symbols; narration is plain speech: {say[:40]}")
-        total += _words(say)
+            bad.append(f'{bw}: "say" holds code symbols; narration is plain speech: {say[:40]}')
         if "caption" in beat and (not isinstance(beat["caption"], str) or not beat["caption"].strip()):
-            bad.append(f'{where} beat {j}: "caption" must be non-empty text (or leave it out).')
-        if beat.get("show") not in SHOWS:
-            bad.append(f'{where} beat {j}: "show" must be one of {", ".join(SHOWS)}.')
-        focus = beat.get("focus")
-        if focus is not None and not (
-            isinstance(focus, list) and len(focus) == 2 and 1 <= focus[0] <= focus[1] <= max(len(lines), 1)
-        ):
-            bad.append(f'{where} beat {j}: "focus" must be [first, last] line numbers inside the code.')
-    if beats[0].get("show") != "meme":
-        bad.append(f"{where}: the first beat must show the meme (the hook).")
-    if beats[-1].get("show") != "takeaway":
-        bad.append(f"{where}: the last beat must show the takeaway.")
-    if not any(b.get("show") == "code" for b in beats):
-        bad.append(f"{where}: at least one beat must show the code.")
+            bad.append(f'{bw}: "caption" must be non-empty text (or leave it out).')
+        sc = beat.get("scenes")
+        if not isinstance(sc, list) or not sc:
+            bad.append(f'{bw}: "scenes" must be a list of full-screen scenes.')
+            continue
+        need = max(1, -(-words // SECONDS_PER_SCENE_WORDS))
+        if len(sc) < need:
+            bad.append(f"{bw}: {words} words need at least {need} scenes (the picture must change every ~2 seconds); it has {len(sc)}.")
+        for k, spec in enumerate(sc, 1):
+            bad += _check_scene(spec, f"{bw} scene {k}", len(lines), known)
+            kinds.append(spec.get("type"))
     if total > MAX_WORDS:
         bad.append(f"{where}: narration is {total} words; the limit is {MAX_WORDS} (a Short is under 59 seconds).")
     if total < 40:
         warn.append(f"{where}: narration is only {total} words - thin for a lesson.")
+    if "meme" not in kinds:
+        bad.append(f"{where}: use at least one meme scene.")
+    if "code" not in kinds and "terminal" not in kinds:
+        bad.append(f"{where}: show the code or a terminal.")
+    last = (beats[-1].get("scenes") or [{}])[-1]
+    if last.get("type") != "takeaway":
+        bad.append(f'{where}: the very last scene must be {{"type": "takeaway"}}.')
+    if not known:
+        warn.append(f"{where}: memegen catalog unavailable (offline) - meme ids not checked.")
 
     if run_code and source.strip() and not bad:
         problem, note = run_snippet(meta["language"], source, code.get("expect", "ok"), str(code.get("expected_output", "")))

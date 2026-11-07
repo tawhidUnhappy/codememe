@@ -18,11 +18,18 @@ with **one JSON block**, codememe checks it before saving anything, then renders
 3. **Check** - `import` verifies the reply, and **runs every lesson's code** (Python, C/C++, Rust,
    JavaScript, Go - whichever toolchain is installed) and compares the output with what the lesson says.
    A meme never teaches code that does not work. Wrong reply -> a fix list to paste back to the LLM.
-4. **Render** - 1080x1920 (configurable), under 59 s: header with *Day n/N* and a progress bar, the meme
-   (real templates - Drake, Distracted Boyfriend, Galaxy Brain, ... - see below; or built-in `choice`, `brain` and `classic` layouts, or your own pictures in `assets/memes/`),
-   a syntax-highlighted code card with the lines being explained lit up, the program's output, the
-   takeaway, big captions, and Kokoro-82M narration (optional background music, ducked).
+4. **Render** - a real Short, not slides: 1080x1920, every beat cut into ~2 s **full-screen scenes** (checked: one scene per
+   ~7 spoken words) rendered at 30 fps - real meme templates, **GIF / video clips** (Giphy or Pexels free key, below), animated
+   **Windows / macOS / Linux terminals** that type the real commands, a code editor that types the code, big kinetic text on
+   moving gradients, a takeaway card; spoken captions, Day n/N progress, Kokoro or Drama 3 narration, optional music.
 5. **Upload** - `upload-prompt` -> titles, descriptions, tags and a pinned comment per video.
+
+## GIFs and video clips (free keys, optional but recommended)
+
+Add either or both to `config.json` (gitignored): `"giphy_key"` (free at developers.giphy.com) for reaction GIFs, `"pexels_key"`
+(free at pexels.com/api) for real stock video. A scene `{"type": "clip", "query": "facepalm", "text": "..."}` is cached in
+`global/clips/`; with no key, or no match, it falls back to a text scene (Wikimedia Commons video only when a scene asks for
+`"source": "wikimedia"`).
 
 ## Material from free servers (no keys)
 
