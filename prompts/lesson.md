@@ -25,6 +25,9 @@ A beginner must be able to follow your lesson on their own computer and have it 
 - Never give outdated advice. When a tool or installer changed recently, say what is current.
 - A reviewer will check every lesson against its sources.
 
+## Live facts (fetched just now - use them, do not guess versions)
+{{FACTS}}
+
 ## Reply format - ONE JSON block and nothing else
 
 ```json
@@ -38,38 +41,50 @@ A beginner must be able to follow your lesson on their own computer and have it 
     "code": {"source": "complete runnable program, 12 lines, 34 columns max", "expect": "ok",
              "expected_output": "exactly what it prints (for expect=error: a piece of the error text)", "filename": "hello.py"},
     "beats": [
-      {"say": "plain spoken sentence(s)", "caption": "optional: on-screen text when it differs from speech",
-       "scenes": [ {"type": "meme", "id": "drake", "captions": ["...", "..."]},
-                   {"type": "text", "text": "BIG WORDS"} ]},
-      "... 5-8 beats ..."
+      {"scenes": [
+        {"say": "3 to 10 spoken words", "type": "image", "source": "screenshot", "url": "https://...", "highlight": [0.05, 0.2, 0.6, 0.23]},
+        {"say": "the next few words", "type": "meme", "id": "drake", "captions": ["...", "..."]}
+      ]},
+      "... 5-9 beats ..."
     ],
     "takeaway": "one memorable line, 14 words max"
   }]
 }
 ```
 
-## Scenes - the picture changes about every 2 seconds, always full screen
-Every beat has `scenes`: **one scene for every ~7 spoken words** (checked). They play in order across the
-beat. Mix them - never three of the same kind in a row:
+## The picture is synchronised with the voice - every scene owns its words
+A beat is one spoken passage (a sentence or two). It is made of **scenes**, and each scene has its own
+`say`: **3-10 spoken words** (about 2 seconds). The beat's narration is simply all its scenes' `say`
+joined in order, and each scene is on screen exactly while *its* words are spoken - so a picture must show
+what its words say (say "click Install" over the Install button, not over a joke). Always full screen,
+always changing.
+
+Scene types (never three of the same kind in a row; at least 3 real-media scenes per lesson):
+- `{"type": "image", "source": "screenshot", "url": "https://...", "highlight": [x0, y0, x1, y1]}` - a **real
+  screenshot of a real web page** (official download page, docs, store page, Stack Overflow question), laid
+  out 720 px wide and scrolled/zoomed; `highlight` (optional) spotlights the element being talked about, as
+  fractions 0-1 of the page image (from its top-left), page image = first ~3200 px of the page. `"scroll": 0-1`
+  moves further down the page. **Prefer this** for anything that exists on a website.
+- `{"type": "image", "source": "commons" | "openverse", "query": "..."}` - an openly licensed picture
+  (Wikimedia Commons: software screenshots, logos, diagrams; Openverse: photos). Credits are added to the
+  video description automatically.
 - `{"type": "meme", "id": ..., "captions": [...]}` - a real meme template, full-screen. Exactly as many
-  captions as slots, each 45 characters max, written for that slot. Different template for most scenes.
-  Ids that work (the order says what each slot is):
+  captions as slots, each 45 characters max. Ids (the order says what each slot is):
 {{MEMEGEN}}
-- `{"type": "clip", "query": "what to search a GIF or stock video for", "text": "OVERLAY TEXT"}` - a
-  full-screen reaction GIF / video clip (text is also shown if none is found). Queries are 1-3 plain words
-  ("facepalm", "typing fast", "mind blown", "loading").
+- `{"type": "clip", "query": "plain words", "text": "OVERLAY"}` - a GIF / stock video clip (needs a Giphy/Pexels
+  key; otherwise a text scene is shown).
 - `{"type": "terminal", "os": "windows|mac|linux", "lines": [{"cmd": "..."}, {"out": "..."}]}` - a real
-  terminal; the commands are typed live and the output appears. Use real, correct commands and output; one
-  row = one line, 40 columns max, 9 rows max.
-- `{"type": "code", "focus": [first, last], "typing": true}` - the lesson's `code` in an editor, typed live
-  (`typing`) or whole with the `focus` lines lit.
-- `{"type": "text", "text": "BIG WORDS"}` - kinetic text on a moving colour gradient, 60 characters max.
-- The last scene of the last beat is `{"type": "takeaway"}`.
+  terminal, commands typed live. Rows may carry `"prompt"` (e.g. after `cd`) and `"done": true` (already typed,
+  for continuing the same session across scenes). 40 columns max, 9 rows max.
+- `{"type": "code", "focus": [first, last], "typing": true}` - the lesson's `code` in an editor.
+- `{"type": "text", "text": "BIG WORDS"}` - kinetic text on a moving gradient (use sparingly).
+- the last scene of the last beat: `{"say": "...", "type": "takeaway"}`.
+- any scene may carry `"caption"`: on-screen text when it should differ from the speech.
 
 ## Rules (checked by software; the code is actually RUN)
 - The code must run as-is and print exactly `expected_output` (`"expect": "error"` may teach an error: it
   must fail, and `expected_output` must be inside the error text).
 - Narration is **under 125 words in total**, plain spoken English: no symbols, no code, no markdown, no
-  emoji. Say code as words ("python hello dot p y"); use `caption` for what should be *shown* ("python hello.py").
-- Casual, quick, friendly, correct. Open with a hook that is funny; the concept must be taught properly.
-  Never mock the learner. Vary the joke angle across the lessons in your reply.
+  emoji. Say code as words ("python hello dot p y") and use `caption` to *show* it ("python hello.py").
+- Casual, quick, friendly, correct. Open with a funny hook; the concept must be taught properly. Never mock
+  the learner. Vary the joke angle across the lessons in your reply.

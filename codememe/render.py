@@ -9,6 +9,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from . import scenes
+from .align import align, heard_words
 from .paths import Project, config, read_json
 from .tts import Narrator, duration
 
@@ -43,6 +44,22 @@ def video_encoder() -> list[str]:
     return ["-c:v", "libx264", "-preset", "veryfast", "-crf", "18"]
 
 
+def _caption_chunks(words: list[str], times: list[tuple[float, float]], scene_end: float) -> list[tuple[float, float, str]]:
+    """Caption chunks of the actual words, each on screen from when its first word is spoken."""
+    out, i = [], 0
+    while i < len(words):
+        piece = words[i : i + CHUNK_WORDS]
+        for k, wd in enumerate(piece[:-1]):
+            if wd[-1] in ",;:.!?" and k >= 1:
+                piece = piece[: k + 1]
+                break
+        out.append([times[i][0], 0.0, " ".join(piece)])
+        i += len(piece)
+    for k, c in enumerate(out):
+        c[1] = out[k + 1][0] if k + 1 < len(out) else scene_end
+    return [tuple(c) for c in out]
+
+
 def render_lesson(project: Project, n: int, engine: str = "kokoro", force: bool = False) -> Path:
     cfg = config()
     meta = project.meta
@@ -54,30 +71,51 @@ def render_lesson(project: Project, n: int, engine: str = "kokoro", force: bool 
     fps, gap = cfg["fps"], cfg["gap_seconds"]
     work_dir = project.lesson_dir(n)
     ctx = {"lesson": lesson, "language": meta["language"], "series": meta.get("series_title") or meta["title"],
-           "n": n, "total": len(plan["lessons"]), "fps": fps}
+           "n": n, "total": len(plan["lessons"]), "fps": fps, "credits": set()}
 
-    timeline: list[dict] = []          # one entry per scene: start, end, scene, caption chunks of its beat
+    # 1. narration takes (one per beat = one spoken passage)
+    beat_say = [" ".join(sc["say"].strip() for sc in beat["scenes"]) for beat in lesson["beats"]]
+    with Narrator(cfg, work_dir / "takes", engine) as narrator:
+        takes = [narrator.take(text) for text in beat_say]
+    lengths = [duration(t) for t in takes]
+    # 2. when each word is actually spoken
+    heard = heard_words(takes, cfg)
+
+    timeline: list[dict] = []
     caption_track: list[tuple[float, float, str]] = []
     audio_parts: list[Path] = []
     clock = 0.0
-    with Narrator(cfg, work_dir / "takes", engine) as narrator, tempfile.TemporaryDirectory(dir=work_dir) as tmp:
+    with tempfile.TemporaryDirectory(dir=work_dir) as tmp:
         tmpd = Path(tmp)
         for bi, beat in enumerate(lesson["beats"]):
-            take = narrator.take(beat["say"])
-            length = duration(take) + gap
+            beat_len = lengths[bi] + gap
             padded = tmpd / f"a{bi:02d}.wav"
-            _ffmpeg("-i", str(take), "-af", f"apad=pad_dur={gap}", str(padded))
+            _ffmpeg("-i", str(takes[bi]), "-af", f"apad=pad_dur={gap}", str(padded))
             audio_parts.append(padded)
-            specs = beat["scenes"]
-            for si, spec in enumerate(specs):
-                timeline.append({"start": clock + length * si / len(specs), "end": clock + length * (si + 1) / len(specs), "spec": spec})
-            pieces = chunks(beat.get("caption") or beat["say"])
-            weights = [max(1, len(p)) for p in pieces]
-            at = clock
-            for piece, wgt in zip(pieces, weights, strict=True):
-                caption_track.append((at, at + length * wgt / sum(weights), piece))
-                at += length * wgt / sum(weights)
-            clock += length
+            words = beat_say[bi].split()
+            times = align(words, heard.get(str(takes[bi])), lengths[bi])
+            at = 0
+            starts, ends = [], []
+            for si, spec in enumerate(beat["scenes"]):
+                count = len(spec["say"].split())
+                starts.append(clock if si == 0 else clock + max(0.0, times[at][0] - 0.05))
+                at += count
+            ends = [*starts[1:], clock + beat_len]
+            at = 0
+            for spec, st, en in zip(beat["scenes"], starts, ends, strict=True):
+                frag = spec["say"].split()
+                count = len(frag)
+                timeline.append({"start": st, "end": max(en, st + 0.3), "spec": spec})
+                abs_times = [(clock + a, clock + b) for a, b in times[at : at + count]]
+                if spec.get("caption"):
+                    # shown text differs from the speech: each caption word takes the time of the spoken word at the same relative position
+                    cap_words = spec["caption"].split()
+                    cap_times = [abs_times[min(count - 1, int(k * count / len(cap_words)))] for k in range(len(cap_words))]
+                    caption_track += _caption_chunks(cap_words, cap_times, en)
+                else:
+                    caption_track += _caption_chunks(frag, abs_times, en)
+                at += count
+            clock += beat_len
         total = clock
         if total > cfg["max_seconds"]:
             raise SystemExit(f"Lesson {n} runs {total:.1f}s, over the {cfg['max_seconds']}s Shorts limit - shorten its narration.")
@@ -110,7 +148,7 @@ def render_lesson(project: Project, n: int, engine: str = "kokoro", force: bool 
                 if current is None or t >= current["end"]:
                     if scene:
                         scene.close()
-                    current = next(s for s in timeline if t < s["end"] or s is timeline[-1])
+                    current = next((s for s in timeline if t < s["end"]), timeline[-1])
                     scene = scenes.make(current["spec"], ctx)
                     scene.prepare(current["end"] - current["start"])
                 img = scene.frame(max(0.0, t - current["start"]))
@@ -127,4 +165,5 @@ def render_lesson(project: Project, n: int, engine: str = "kokoro", force: bool 
         if enc.returncode != 0:
             raise SystemExit("ffmpeg failed while encoding")
         part.replace(out_path)
+    (work_dir / "credits.txt").write_text("\n".join(sorted(ctx["credits"])) + ("\n" if ctx["credits"] else ""))
     return out_path

@@ -268,7 +268,7 @@ class TerminalScene(Scene):
         super().prepare(duration)
         self.style = OS_STYLE[self.spec.get("os", "linux")]
         self.rows = self.spec["lines"]
-        self.cmd_chars = sum(len(r["cmd"]) for r in self.rows if "cmd" in r)
+        self.cmd_chars = sum(len(r["cmd"]) for r in self.rows if "cmd" in r and not r.get("done"))
         self.palette = {"windows": 5, "mac": 3, "linux": 0}[self.spec.get("os", "linux")]
 
     def frame(self, t):
@@ -300,11 +300,11 @@ class TerminalScene(Scene):
                 prompt = r.get("prompt", st["prompt"])
                 d.text((pad, y), prompt, font=fnt, fill=st["pcol"])
                 x = pad + d.textlength(prompt, font=fnt)
-                shown = r["cmd"][:max(0, remaining)]
+                shown = r["cmd"] if r.get("done") else r["cmd"][:max(0, remaining)]
                 d.text((x, y), shown, font=fnt, fill=(240, 240, 240))
                 x += d.textlength(shown, font=fnt)
-                remaining -= len(r["cmd"])
-                if remaining < 0:  # still typing this one: stop here
+                remaining -= 0 if r.get("done") else len(r["cmd"])
+                if remaining < 0 and not r.get("done"):  # still typing this one: stop here
                     if int(t * 2.4) % 2 == 0:
                         d.rectangle([x + 2, y + 6, x + size // 2, y + size + 4], fill=(240, 240, 240))
                     return img
@@ -339,7 +339,72 @@ class TakeawayScene(Scene):
         return img
 
 
-KINDS = {"meme": MemeScene, "clip": ClipScene, "terminal": TerminalScene, "code": CodeScene, "text": TextScene, "takeaway": TakeawayScene}
+class ImageScene(Scene):
+    """A real picture, full-screen: a page screenshot (panned, with an optional spotlight on `highlight`
+    [x0, y0, x1, y1] given as fractions of the page) or a Commons / Openverse picture (blurred-fill, punch-in)."""
+
+    def prepare(self, duration):
+        super().prepare(duration)
+        from . import images
+        spec = self.spec
+        self.fallback = None
+        self.page = spec.get("source", "screenshot") == "screenshot"
+        try:
+            if self.page:
+                path = images.screenshot(spec["url"])
+            else:
+                path, credit = (images.commons if spec["source"] == "commons" else images.openverse)(spec["query"])
+                self.ctx.setdefault("credits", set()).add(credit)
+            self.img = Image.open(path).convert("RGB")
+        except Exception as e:
+            print(f"warning: image scene failed ({e}); using a text scene")
+            self.fallback = TextScene({"text": spec.get("text") or spec.get("query") or "see the link"}, self.ctx)
+            self.fallback.prepare(duration)
+            return
+        if not self.page:
+            self.bg = ImageEnhance_darken(_cover(self.img).filter(ImageFilter.GaussianBlur(36)))
+
+    def frame(self, t):
+        if self.fallback:
+            return self.fallback.frame(t)
+        u = t / self.duration
+        if not self.page:
+            fg = _contain(self.img, W - 40, 1100, (0.86 + 0.14 * ease_out(t / 0.18)) * (1 + 0.05 * u))
+            img = self.bg.copy()
+            _paste_center(img, fg, 0.38)
+            return img
+        pic = self.img
+        hl = self.spec.get("highlight")
+        height = pic.height
+        if hl:
+            cx, cy = (hl[0] + hl[2]) / 2 * pic.width, (hl[1] + hl[3]) / 2 * height
+            zoom = 1 + 0.22 * ease_out(u * 1.6)
+            vw, vh = W / zoom, H / zoom
+            top = min(max(cy - vh * 0.40, 0), max(0, height - vh))
+            left = min(max(cx - vw / 2, 0), pic.width - vw)
+        else:
+            zoom = 1 + 0.04 * u
+            vw, vh = W / zoom, H / zoom
+            top = min(max(self.spec.get("scroll", 0.0) * (height - vh) + 70 * u, 0), max(0, height - vh))
+            left = (pic.width - vw) / 2
+        view = pic.crop((int(left), int(top), int(left + vw), int(top + vh))).resize((W, H))
+        if hl:
+            k = ease_out((t - 0.35) / 0.3)
+            x0, x1 = (hl[0] * pic.width - left) * zoom, (hl[2] * pic.width - left) * zoom
+            y0, y1 = (hl[1] * height - top) * zoom, (hl[3] * height - top) * zoom
+            pad = 14
+            box = [x0 - pad, y0 - pad, x1 + pad, y1 + pad]
+            if k > 0:
+                dim = Image.eval(view, lambda v: int(v * (1 - 0.55 * k)))
+                dim.paste(view.crop(tuple(int(c) for c in box)), (int(box[0]), int(box[1])))
+                view = dim
+                d = ImageDraw.Draw(view)
+                pulse = 6 + 3 * math.sin(t * 7)
+                d.rounded_rectangle(box, radius=18, outline=(255, 196, 61), width=int(pulse))
+        return view
+
+
+KINDS = {"meme": MemeScene, "clip": ClipScene, "terminal": TerminalScene, "code": CodeScene, "text": TextScene, "image": ImageScene, "takeaway": TakeawayScene}
 
 
 def make(spec: dict, ctx: dict) -> Scene:
@@ -358,6 +423,8 @@ def overlay(img: Image.Image, ctx: dict, caption: str, progress: float) -> Image
         fnt = font("bold", 78)
         lines = wrap(d, caption, fnt, W - 140)[:3]
         y = 1500 - len(lines) * 94
+        band = max(d.textlength(ln, font=fnt) for ln in lines) + 70
+        d.rounded_rectangle([(W - band) / 2, y - 14, (W + band) / 2, y + len(lines) * 94 + 4], radius=34, fill=(0, 0, 0, 105))
         for ln in lines:
             d.text(((W - d.textlength(ln, font=fnt)) / 2, y), ln, font=fnt, fill=INK, stroke_width=10, stroke_fill=(0, 0, 0))
             y += 94

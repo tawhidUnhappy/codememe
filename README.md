@@ -24,6 +24,16 @@ with **one JSON block**, codememe checks it before saving anything, then renders
    moving gradients, a takeaway card; spoken captions, Day n/N progress, Kokoro or Drama 3 narration, optional music.
 5. **Upload** - `upload-prompt` -> titles, descriptions, tags and a pinned comment per video.
 
+## Real screenshots and pictures, synced to the voice
+
+Every scene of a lesson owns the words spoken while it is on screen (`say`, 3-10 words), and the video is timed from
+**word-level alignment** of the narration (faster-whisper, `whisper_python` / `whisper_model_dir` in `config.json`): a
+picture appears exactly when its words are spoken, and captions follow the real word times. `image` scenes grab
+**real web pages with headless Chrome** (python.org, docs, the Microsoft Store, Stack Overflow ...) at phone-readable size,
+with an optional spotlight (`highlight`) on the element being talked about, or openly licensed pictures from Wikimedia Commons /
+Openverse (credits are added to the upload description). Live facts (e.g. the latest Python version) are fetched into every
+lesson prompt, so output like `Python 3.15.2` is current.
+
 ## GIFs and video clips (free keys, optional but recommended)
 
 Add either or both to `config.json` (gitignored): `"giphy_key"` (free at developers.giphy.com) for reaction GIFs, `"pexels_key"`

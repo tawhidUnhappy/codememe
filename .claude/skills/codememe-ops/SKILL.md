@@ -18,7 +18,8 @@ Entry: `./run.sh <command>` (`codememe/cli.py`). Lint: `.venv/bin/python -m ruff
 - `memegen.py` real meme templates (catalog from api.memegen.link, background + text boxes from the memegen repo, drawn locally = no watermark; cache global/memegen/); `assets/memegen_curated.json` = slot hints shown to the LLM (verify a new entry by rendering it and LOOKING). The public memegen server always stamps a watermark - never crop it; render locally instead.
 - `sources.py` free key-less servers: docs (topics/<lang>.json "docs"), Wikipedia, Stack Exchange (300/day), JokeAPI, Openverse CC0 music; cached in global/sources; relevance filters (a wrong Wikipedia hit once said Go for a Python lesson)
 - `scenes.py` full-screen animated scene classes (meme/clip/terminal/code/text/takeaway) + header/caption overlay; `render.py` streams frames to ffmpeg (NVENC if present); `clips.py` Giphy/Pexels/Wikimedia
-- lesson format 2: beats = {say, caption?, scenes[]}; one scene per ~7 words; `sources` URLs required; last scene = takeaway
+- lesson format 3: beats = {scenes[]}, each scene {say (3-10 words), type, ..., caption?}; beat narration = scenes' says joined (one TTS take per beat); `align.py` (faster-whisper word times, difflib to the script words, cached *.words.json) sets scene starts + caption chunks; `sources` URLs required; last scene = takeaway
+- `images.py` screenshots via headless Chrome (720 css px wide, 1080x3200 png) + Commons/Openverse with credits (Commons search is loose: verify results by LOOKING); `facts.py` live facts (latest version) into lesson prompts
 - `memecards.py` meme layouts (built-in fallbacks), `frames.py` every still (header, code card via Pygments, output, takeaway, captions)
 - `tts.py` engines: kokoro (`scripts/kokoro_worker.py`), drama3 (`scripts/drama3_worker.py` = remanga's worker + `voice_gguf`, the user's own voice file, one sentence per request), `silent`; takes cached by hash
 - `render.py` takes -> caption-chunk stills -> ffmpeg concat -> mp4 (hard stop over `max_seconds`)
@@ -29,6 +30,7 @@ Entry: `./run.sh <command>` (`codememe/cli.py`). Lint: `.venv/bin/python -m ruff
 - beats may carry `caption` (on-screen text when it differs from speech: "hello dot p y" -> hello.py); loudnorm is in render.py (peak-limited, ~-17 LUFS)
 
 ## Ground rules
+- **Sync and real media.** Lesson 1 v2 was scored 3/100: no real images/screenshots and audio out of sync (scenes were split evenly, not by spoken words). Check sync by pulling frames at the time of key words, and look at every screenshot before trusting a highlight rect.
 - **Facts first.** Lesson 1 was once scored 0/100 for outdated/incomplete steps (old "tick Add to PATH" advice; no cd; python vs python3). Read the CURRENT official docs (research pulls them) and cover Windows/macOS/Linux commands.
 - **Public repo**: run `./run.sh public-check` before every commit/push; never print/paste client_secret or tokens; commits use the GitHub noreply identity.
 - Code only in git. Courses, config.json, meme pictures, renders are local and gitignored; no personal paths in code.

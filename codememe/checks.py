@@ -68,8 +68,9 @@ def _words(text: str) -> int:
     return len(re.findall(r"[A-Za-z0-9']+", text))
 
 
-SCENE_TYPES = ("meme", "clip", "terminal", "code", "text", "takeaway")
-SECONDS_PER_SCENE_WORDS = 7      # a scene per ~7 spoken words keeps the picture changing every ~2.5 s
+SCENE_TYPES = ("meme", "clip", "image", "terminal", "code", "text", "takeaway")
+MEDIA = ("meme", "clip", "image")
+MIN_FRAGMENT, MAX_FRAGMENT = 3, 10
 MAX_TERMINAL_WIDTH = 40
 
 
@@ -92,6 +93,18 @@ def _check_scene(spec: dict, where: str, n_code_lines: int, known_memes: dict) -
             bad.append(f'{where}: a clip needs "query" (what to search a GIF/video for) and "text" (overlay text, also used if no clip is found).')
         if len(str(spec.get("text", ""))) > 40:
             bad.append(f"{where}: clip text is over 40 characters.")
+    elif kind == "image":
+        src = spec.get("source", "screenshot")
+        if src == "screenshot" and not str(spec.get("url", "")).startswith("http"):
+            bad.append(f'{where}: a screenshot image needs "url" (the page to grab).')
+        elif src in ("commons", "openverse") and not str(spec.get("query", "")).strip():
+            bad.append(f'{where}: a {src} image needs "query".')
+        elif src not in ("screenshot", "commons", "openverse"):
+            bad.append(f'{where}: image "source" must be screenshot, commons or openverse.')
+        hl = spec.get("highlight")
+        if hl is not None and not (isinstance(hl, list) and len(hl) == 4 and all(isinstance(v, (int, float)) and 0 <= v <= 1 for v in hl)
+                                   and hl[0] < hl[2] and hl[1] < hl[3]):
+            bad.append(f'{where}: "highlight" must be [x0, y0, x1, y1] fractions (0-1) of the page, top-left to bottom-right.')
     elif kind == "text":
         if not str(spec.get("text", "")).strip() or len(spec["text"]) > 60:
             bad.append(f'{where}: a text scene needs "text" of 1-60 characters.')
@@ -153,31 +166,29 @@ def check_lesson(lesson: dict, meta: dict, plan: dict | None, run_code: bool = T
     total, kinds = 0, []
     for j, beat in enumerate(beats, 1):
         bw = f"{where} beat {j}"
-        say = str(beat.get("say", "")).strip()
-        words = _words(say)
-        total += words
-        if not say:
-            bad.append(f'{bw}: empty "say".')
-        if UNSPEAKABLE.search(say):
-            bad.append(f'{bw}: "say" holds code symbols; narration is plain speech: {say[:40]}')
-        if "caption" in beat and (not isinstance(beat["caption"], str) or not beat["caption"].strip()):
-            bad.append(f'{bw}: "caption" must be non-empty text (or leave it out).')
         sc = beat.get("scenes")
         if not isinstance(sc, list) or not sc:
             bad.append(f'{bw}: "scenes" must be a list of full-screen scenes.')
             continue
-        need = max(1, -(-words // SECONDS_PER_SCENE_WORDS))
-        if len(sc) < need:
-            bad.append(f"{bw}: {words} words need at least {need} scenes (the picture must change every ~2 seconds); it has {len(sc)}.")
         for k, spec in enumerate(sc, 1):
-            bad += _check_scene(spec, f"{bw} scene {k}", len(lines), known)
+            sw = f"{bw} scene {k}"
+            say = str(spec.get("say", "")).strip()
+            words = _words(say)
+            total += words
+            if not MIN_FRAGMENT <= words <= MAX_FRAGMENT:
+                bad.append(f'{sw}: "say" is the words spoken while this picture is on screen: {MIN_FRAGMENT}-{MAX_FRAGMENT} words (about 2 seconds); it has {words}.')
+            if UNSPEAKABLE.search(say):
+                bad.append(f'{sw}: "say" holds code symbols; narration is plain speech: {say[:40]}')
+            if "caption" in spec and (not isinstance(spec["caption"], str) or not spec["caption"].strip()):
+                bad.append(f'{sw}: "caption" must be non-empty text (or leave it out).')
+            bad += _check_scene(spec, sw, len(lines), known)
             kinds.append(spec.get("type"))
     if total > MAX_WORDS:
         bad.append(f"{where}: narration is {total} words; the limit is {MAX_WORDS} (a Short is under 59 seconds).")
     if total < 40:
         warn.append(f"{where}: narration is only {total} words - thin for a lesson.")
-    if "meme" not in kinds:
-        bad.append(f"{where}: use at least one meme scene.")
+    if sum(k in MEDIA for k in kinds) < 3:
+        bad.append(f"{where}: use at least 3 real-media scenes (meme / image / clip) - screenshots of the real thing beat text slides.")
     if "code" not in kinds and "terminal" not in kinds:
         bad.append(f"{where}: show the code or a terminal.")
     last = (beats[-1].get("scenes") or [{}])[-1]

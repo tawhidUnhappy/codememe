@@ -13,5 +13,10 @@
   "speech_exe": "/path/to/speech.cpp/speech",
   "drama3_model": "/path/to/Drama-35B-A3B-v3-Q4_K.gguf",
   "voice_gguf": "/path/to/your.voice.gguf",
-  "drama3_headroom_gb": 1.5
+  "drama3_headroom_gb": 1.5,
+  "whisper_python": "/path/to/python/with/faster-whisper",
+  "whisper_model_dir": "/path/to/faster-whisper model dir (word timing for sync)",
+  "chrome": "optional: path to Chrome/Chromium for screenshots",
+  "giphy_key": "optional",
+  "pexels_key": "optional"
 }
