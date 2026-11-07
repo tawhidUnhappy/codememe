@@ -16,7 +16,7 @@ Entry: `./run.sh <command>` (`codememe/cli.py`). Lint: `.venv/bin/python -m ruff
 - `checks.py` the contracts - **moves together with `prompts/*.md`** (curriculum.md, lesson.md, upload.md)
 - `runcheck.py` runs lesson code per language; missing toolchain = warning
 - `memecards.py` meme layouts, `frames.py` every still (header, code card via Pygments, output, takeaway, captions)
-- `tts.py` Kokoro worker (`scripts/kokoro_worker.py`, runs in another Python) + `silent` engine; takes cached by hash
+- `tts.py` engines: kokoro (`scripts/kokoro_worker.py`), drama3 (`scripts/drama3_worker.py` = remanga's worker + `voice_gguf`, the user's own voice file, one sentence per request), `silent`; takes cached by hash
 - `render.py` takes -> caption-chunk stills -> ffmpeg concat -> mp4 (hard stop over `max_seconds`)
 - `topics/<language>.json` area checklists that make "complete course" enforceable
 

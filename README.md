@@ -39,7 +39,9 @@ with **one JSON block**, codememe checks it before saving anything, then renders
 
 `./run.sh` creates its own `.venv` (needs [uv](https://docs.astral.sh/uv/) and ffmpeg). Voice: copy
 `config.example.json` to `config.json` and point `kokoro_python` / `kokoro_model_dir` at a Kokoro-82M
-install (remanga's `.tools/venv-kokoro` and `checkpoints/kokoro_82m` work as they are). `config.json`,
+install; or set `"engine": "drama3"` to narrate with Fish Audio Drama 3 in a voice file of your own
+(`speech_exe`, `drama3_model`, `voice_gguf` - make the file once from a recording of **your own voice**:
+`speech voice <model.gguf> rec.wav --transcript "what it says" my.voice.gguf`). Kokoro: (remanga's `.tools/venv-kokoro` and `checkpoints/kokoro_82m` work as they are). `config.json`,
 `projects/` and your meme pictures are gitignored; the repo is code only.
 
 ## Adding a language

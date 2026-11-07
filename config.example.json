@@ -8,5 +8,10 @@
   "music": null,
   "music_volume_db": -24,
   "gap_seconds": 0.35,
-  "max_seconds": 59
+  "max_seconds": 59,
+  "engine": "kokoro | drama3",
+  "speech_exe": "/path/to/speech.cpp/speech",
+  "drama3_model": "/path/to/Drama-35B-A3B-v3-Q4_K.gguf",
+  "voice_gguf": "/path/to/your.voice.gguf",
+  "drama3_headroom_gb": 1.5
 }

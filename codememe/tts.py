@@ -14,6 +14,7 @@ from pathlib import Path
 from .paths import ROOT
 
 WORKER = ROOT / "codememe" / "scripts" / "kokoro_worker.py"
+DRAMA_WORKER = ROOT / "codememe" / "scripts" / "drama3_worker.py"
 
 
 def take_name(voice: str, text: str) -> str:
@@ -67,8 +68,29 @@ class Narrator:
         if first.get("event") != "ready":
             raise SystemExit(f"Kokoro did not start: {first}")
 
+    def _start_drama3(self) -> None:
+        c = self.cfg
+        need = ("speech_exe", "drama3_model", "voice_gguf")
+        if not all(c.get(k) for k in need):
+            raise SystemExit(f"Drama 3 needs {', '.join(need)} in config.json (see config.example.json).")
+        self.proc = subprocess.Popen(
+            [sys.executable, str(DRAMA_WORKER), "--speech", c["speech_exe"], "--model", c["drama3_model"],
+             "--voices_dir", str(Path(c["voice_gguf"]).parent), "--headroom_gb", str(c.get("drama3_headroom_gb", 1.5))],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr, text=True, bufsize=1)
+        first = json.loads(self.proc.stdout.readline() or "{}")
+        if first.get("event") != "ready":
+            raise SystemExit(f"Drama 3 did not start: {first}")
+
+    def _voice_id(self) -> str:
+        if self.engine == "kokoro":
+            return self.cfg["voice"]
+        if self.engine == "drama3":
+            f = Path(self.cfg.get("voice_gguf") or "")
+            return f"drama3:{f.name}:{f.stat().st_mtime_ns if f.exists() else 0}"
+        return "silent"
+
     def take(self, text: str) -> Path:
-        voice = self.cfg["voice"] if self.engine == "kokoro" else "silent"
+        voice = self._voice_id()
         path = self.dir / take_name(voice, text)
         if path.exists() and path.stat().st_size > 1000:
             return path
@@ -77,11 +99,14 @@ class Narrator:
             _silent(text, part)
         else:
             if not self.proc:
-                self._start()
-            self.proc.stdin.write(json.dumps({"cmd": "synthesize", "voice": voice, "text": text, "output_path": str(part)}) + "\n")
+                self._start_drama3() if self.engine == "drama3" else self._start()
+            request = {"cmd": "synthesize", "voice": voice, "text": text, "output_path": str(part)}
+            if self.engine == "drama3":
+                request["voice_gguf"] = str(Path(self.cfg["voice_gguf"]).resolve())
+            self.proc.stdin.write(json.dumps(request) + "\n")
             self.proc.stdin.flush()
             reply = json.loads(self.proc.stdout.readline() or "{}")
             if not reply.get("ok"):
-                raise SystemExit(f"Kokoro failed on {text[:40]!r}: {reply.get('error')}")
+                raise SystemExit(f"{self.engine} failed on {text[:40]!r}: {reply.get('error')}")
         part.replace(path)
         return path

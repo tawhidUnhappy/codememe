@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from . import checks
-from .paths import MEMES, PROJECTS, PROMPTS, Project, read_json, require, slug, write_json
+from .paths import MEMES, PROJECTS, PROMPTS, Project, config, read_json, require, slug, write_json
 from .replies import extract_json
 
 BATCH = 10
@@ -168,7 +168,7 @@ def cmd_render(a) -> None:
         if n not in have:
             print(f"lesson {n}: not written yet, skipped")
             continue
-        out = render_lesson(project, n, "silent" if a.silent else "kokoro", a.fresh)
+        out = render_lesson(project, n, "silent" if a.silent else (a.engine or config()["engine"]), a.fresh)
         print(f"lesson {n}: {out}")
 
 
@@ -213,6 +213,7 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("render", help="make the videos")
     p.add_argument("name"), p.add_argument("range", help="3, 1-10 or all")
     p.add_argument("--silent", action="store_true", help="no voice (layout test)")
+    p.add_argument("--engine", choices=("kokoro", "drama3"), help="override config.json engine")
     p.add_argument("--fresh", action="store_true", help="re-render existing videos")
     p.set_defaults(fn=cmd_render)
     p = sub.add_parser("status")
