@@ -1,0 +1,125 @@
+{
+ "language": "C++",
+ "areas": [
+  {
+   "id": "setup-build",
+   "name": "Compiler, g++/clang, CMake basics, hello world, headers"
+  },
+  {
+   "id": "variables-types",
+   "name": "Fundamental types, auto, const, constexpr, sizes"
+  },
+  {
+   "id": "operators",
+   "name": "Arithmetic, bitwise, logical, precedence, casts"
+  },
+  {
+   "id": "control-flow",
+   "name": "if, switch, loops, range-for, structured bindings"
+  },
+  {
+   "id": "functions",
+   "name": "Overloading, default args, inline, recursion, lambdas"
+  },
+  {
+   "id": "references-pointers",
+   "name": "References, pointers, nullptr, pointer arithmetic"
+  },
+  {
+   "id": "arrays-strings",
+   "name": "C arrays, std::array, std::string, string_view"
+  },
+  {
+   "id": "memory",
+   "name": "stack vs heap, new/delete, RAII"
+  },
+  {
+   "id": "smart-pointers",
+   "name": "unique_ptr, shared_ptr, weak_ptr, make_unique"
+  },
+  {
+   "id": "classes",
+   "name": "Classes, constructors, destructors, access, this"
+  },
+  {
+   "id": "special-members",
+   "name": "Copy/move, rule of 0/3/5, move semantics, rvalue refs"
+  },
+  {
+   "id": "inheritance",
+   "name": "Inheritance, virtual, override, abstract classes, vtables"
+  },
+  {
+   "id": "operator-overloading",
+   "name": "Operator overloading, friend, spaceship <=>"
+  },
+  {
+   "id": "templates",
+   "name": "Function/class templates, specialization, variadic templates"
+  },
+  {
+   "id": "concepts",
+   "name": "Concepts, requires, constraints (C++20)"
+  },
+  {
+   "id": "stl-containers",
+   "name": "vector, list, deque, map, unordered_map, set, stack, queue"
+  },
+  {
+   "id": "iterators",
+   "name": "Iterators, categories, ranges"
+  },
+  {
+   "id": "algorithms",
+   "name": "<algorithm>, sort, find, transform, accumulate, ranges::"
+  },
+  {
+   "id": "functional",
+   "name": "std::function, bind, lambdas captures, std::optional/variant/any"
+  },
+  {
+   "id": "errors",
+   "name": "Exceptions, noexcept, error codes, std::expected idea"
+  },
+  {
+   "id": "io-streams",
+   "name": "iostream, fstream, stringstream, format/print"
+  },
+  {
+   "id": "namespaces-headers",
+   "name": "namespaces, headers, include guards, modules (C++20)"
+  },
+  {
+   "id": "preprocessor",
+   "name": "Macros, #define, conditional compilation"
+  },
+  {
+   "id": "enums-unions",
+   "name": "enum class, unions, bit fields"
+  },
+  {
+   "id": "constexpr-metaprogramming",
+   "name": "constexpr, consteval, type traits, SFINAE idea"
+  },
+  {
+   "id": "concurrency",
+   "name": "thread, mutex, atomic, future, async, condition_variable"
+  },
+  {
+   "id": "memory-model",
+   "name": "Undefined behavior, object lifetime, alignment, volatile"
+  },
+  {
+   "id": "coroutines",
+   "name": "Coroutines basics (C++20)"
+  },
+  {
+   "id": "tooling",
+   "name": "Sanitizers, gdb, valgrind, clang-tidy, build flags"
+  },
+  {
+   "id": "modern-cpp",
+   "name": "C++11/14/17/20/23 feature tour, best practices"
+  }
+ ]
+}

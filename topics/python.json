@@ -1,0 +1,129 @@
+{
+ "language": "Python",
+ "areas": [
+  {
+   "id": "syntax-basics",
+   "name": "Syntax, indentation, comments, print"
+  },
+  {
+   "id": "variables",
+   "name": "Variables, assignment, naming, dynamic typing"
+  },
+  {
+   "id": "numbers",
+   "name": "int, float, complex, arithmetic, math module"
+  },
+  {
+   "id": "strings",
+   "name": "Strings, slicing, methods, f-strings, formatting"
+  },
+  {
+   "id": "booleans",
+   "name": "bool, truthiness, comparison, logical operators"
+  },
+  {
+   "id": "input-output",
+   "name": "input(), print options, files for reading and writing"
+  },
+  {
+   "id": "conditionals",
+   "name": "if/elif/else, match-case, ternary"
+  },
+  {
+   "id": "loops",
+   "name": "for, while, break/continue/else, range, enumerate, zip"
+  },
+  {
+   "id": "lists",
+   "name": "Lists, methods, slicing, comprehensions"
+  },
+  {
+   "id": "tuples",
+   "name": "Tuples, unpacking, namedtuple"
+  },
+  {
+   "id": "sets",
+   "name": "Sets, operations, frozenset"
+  },
+  {
+   "id": "dicts",
+   "name": "Dicts, methods, comprehensions, defaultdict, Counter"
+  },
+  {
+   "id": "functions",
+   "name": "def, arguments, defaults, *args/**kwargs, return, scope"
+  },
+  {
+   "id": "lambda-functional",
+   "name": "lambda, map/filter/reduce, sorted key, any/all"
+  },
+  {
+   "id": "generators",
+   "name": "Iterators, generators, yield, itertools"
+  },
+  {
+   "id": "decorators",
+   "name": "Closures, decorators, functools"
+  },
+  {
+   "id": "classes",
+   "name": "Classes, __init__, attributes, methods, self"
+  },
+  {
+   "id": "inheritance",
+   "name": "Inheritance, super, MRO, polymorphism, ABCs"
+  },
+  {
+   "id": "dunder",
+   "name": "Dunder methods, operator overloading, properties"
+  },
+  {
+   "id": "dataclasses",
+   "name": "dataclasses, enums, typing basics"
+  },
+  {
+   "id": "errors",
+   "name": "Exceptions, try/except/finally, raise, custom exceptions"
+  },
+  {
+   "id": "context-managers",
+   "name": "with, context managers, contextlib"
+  },
+  {
+   "id": "modules",
+   "name": "import, modules, packages, __name__, venv, pip"
+  },
+  {
+   "id": "stdlib",
+   "name": "collections, datetime, random, json, re, pathlib, os, sys"
+  },
+  {
+   "id": "type-hints",
+   "name": "Type hints, Optional, Union, generics, mypy"
+  },
+  {
+   "id": "testing-debugging",
+   "name": "assert, unittest/pytest, pdb, logging"
+  },
+  {
+   "id": "concurrency",
+   "name": "threading, multiprocessing, asyncio, GIL"
+  },
+  {
+   "id": "memory-internals",
+   "name": "References, mutability, copy/deepcopy, garbage collection, is vs =="
+  },
+  {
+   "id": "performance",
+   "name": "Profiling, timeit, big-O, caching, slots"
+  },
+  {
+   "id": "idioms",
+   "name": "Pythonic idioms, walrus, unpacking tricks, zen of python"
+  },
+  {
+   "id": "ecosystem",
+   "name": "Popular libraries tour: requests, numpy, pandas, flask, pytest"
+  }
+ ]
+}

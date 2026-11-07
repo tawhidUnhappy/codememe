@@ -1,0 +1,125 @@
+{
+ "language": "Rust",
+ "areas": [
+  {
+   "id": "setup-cargo",
+   "name": "rustup, cargo, hello world, cargo build/run/test"
+  },
+  {
+   "id": "variables",
+   "name": "let, mut, shadowing, constants"
+  },
+  {
+   "id": "scalar-types",
+   "name": "Integers, floats, bool, char, overflow"
+  },
+  {
+   "id": "compound-types",
+   "name": "Tuples, arrays, slices"
+  },
+  {
+   "id": "strings",
+   "name": "String vs &str, UTF-8, methods, format!"
+  },
+  {
+   "id": "control-flow",
+   "name": "if, loop, while, for, labels, match"
+  },
+  {
+   "id": "functions",
+   "name": "fn, expressions vs statements, return"
+  },
+  {
+   "id": "ownership",
+   "name": "Ownership, move, Copy, Clone, drop"
+  },
+  {
+   "id": "borrowing",
+   "name": "References, &mut, borrowing rules"
+  },
+  {
+   "id": "lifetimes",
+   "name": "Lifetime annotations, elision, 'static"
+  },
+  {
+   "id": "structs",
+   "name": "Structs, methods, impl, associated functions"
+  },
+  {
+   "id": "enums",
+   "name": "Enums, Option, Result, pattern matching, if let, let else"
+  },
+  {
+   "id": "collections",
+   "name": "Vec, HashMap, HashSet, BTreeMap, VecDeque"
+  },
+  {
+   "id": "error-handling",
+   "name": "panic!, Result, ?, custom errors, thiserror/anyhow idea"
+  },
+  {
+   "id": "generics",
+   "name": "Generics, monomorphization"
+  },
+  {
+   "id": "traits",
+   "name": "Traits, default methods, trait bounds, impl Trait, dyn Trait"
+  },
+  {
+   "id": "operators-conversions",
+   "name": "Operator overloading, From/Into, TryFrom, Display/Debug"
+  },
+  {
+   "id": "iterators",
+   "name": "Iterator trait, adaptors, closures, collect"
+  },
+  {
+   "id": "closures",
+   "name": "Closures, Fn/FnMut/FnOnce, move"
+  },
+  {
+   "id": "smart-pointers",
+   "name": "Box, Rc, Arc, RefCell, Cell, Weak, Deref, Drop"
+  },
+  {
+   "id": "modules-crates",
+   "name": "mod, use, pub, crates, workspaces, Cargo.toml"
+  },
+  {
+   "id": "testing",
+   "name": "#[test], assert macros, doc tests, integration tests"
+  },
+  {
+   "id": "concurrency",
+   "name": "threads, channels, Mutex, RwLock, Send/Sync, atomics"
+  },
+  {
+   "id": "async",
+   "name": "async/await, futures, tokio basics"
+  },
+  {
+   "id": "macros",
+   "name": "macro_rules!, derive macros, attributes"
+  },
+  {
+   "id": "unsafe-ffi",
+   "name": "unsafe, raw pointers, FFI, repr(C)"
+  },
+  {
+   "id": "patterns",
+   "name": "Advanced patterns, slices patterns, guards, bindings"
+  },
+  {
+   "id": "io-files",
+   "name": "std::fs, std::io, args, env, process"
+  },
+  {
+   "id": "tooling",
+   "name": "clippy, rustfmt, docs, cargo features, profiles"
+  },
+  {
+   "id": "ecosystem",
+   "name": "serde, clap, rayon, reqwest tour"
+  }
+ ]
+}

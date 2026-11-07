@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.tools/
+.cache/
+.ruff_cache/
+# The user's own data stays local: courses, settings, music, meme templates, renders.
+projects/
+config.json
+global/
+*.mp4
+*.wav
+*.mp3
+assets/memes/*
+!assets/memes/README.md

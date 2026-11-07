@@ -1,0 +1,12 @@
+{
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "voice": "af_heart",
+  "kokoro_python": "/path/to/a/python/with/kokoro/installed",
+  "kokoro_model_dir": "/path/to/Kokoro-82M (config.json, kokoro-v1_0.pth, voices/)",
+  "music": null,
+  "music_volume_db": -24,
+  "gap_seconds": 0.35,
+  "max_seconds": 59
+}

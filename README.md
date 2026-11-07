@@ -1,0 +1,51 @@
+# codememe
+
+Learn a programming language **by meme**: a whole course as a series of vertical Shorts - "100 Days of
+Python by Meme", "Learn Rust by Meme", "Complete C++ in Shorts" - with an LLM (Gemini, ChatGPT, Claude, ...)
+as the teacher and writer, and codememe doing everything else on your machine.
+
+It is the sibling of [remanga](../remanga): same shape - the LLM makes the judgment calls and replies
+with **one JSON block**, codememe checks it before saving anything, then renders.
+
+1. **Plan the course** - `new` writes a prompt; the LLM returns the whole curriculum: N lessons in
+   teaching order, each with its concepts and meme idea. Python, Rust and C++ ship with a checklist of
+   areas (`topics/*.json`: ownership, templates, decorators, concurrency, ...) that the plan **must cover
+   completely** - the checker rejects a plan that skips one. Any other language gets an LLM-made area
+   list, and the same "every area covered" rule.
+2. **Write the Shorts** - `lesson-prompt` builds a prompt for the next 10 lessons (it includes what
+   earlier lessons taught, so nothing is re-explained). The reply: per lesson a hook, a meme, a short
+   runnable program, narration beats and a takeaway.
+3. **Check** - `import` verifies the reply, and **runs every lesson's code** (Python, C/C++, Rust,
+   JavaScript, Go - whichever toolchain is installed) and compares the output with what the lesson says.
+   A meme never teaches code that does not work. Wrong reply -> a fix list to paste back to the LLM.
+4. **Render** - 1080x1920 (configurable), under 59 s: header with *Day n/N* and a progress bar, the meme
+   (built-in `choice`, `brain` and `classic` layouts, or your own template pictures in `assets/memes/`),
+   a syntax-highlighted code card with the lines being explained lit up, the program's output, the
+   takeaway, big captions, and Kokoro-82M narration (optional background music, ducked).
+5. **Upload** - `upload-prompt` -> titles, descriptions, tags and a pinned comment per video.
+
+## Use it
+
+```bash
+./run.sh new python --title "100 Days of Python by Meme" --lessons 100
+# give projects/<name>/curriculum.prompt.md to an LLM, save its JSON reply as reply.json
+./run.sh import <name> reply.json
+./run.sh lesson-prompt <name> 1-10        # -> LLM -> reply
+./run.sh import <name> reply.json         # checks it AND runs the code
+./run.sh render <name> 1-10               # or: all ; add --silent to test the layout without a voice
+./run.sh status <name>                    # what is written / rendered, and the next command
+./run.sh check <name>                     # re-run every saved lesson's code
+```
+
+`./run.sh` creates its own `.venv` (needs [uv](https://docs.astral.sh/uv/) and ffmpeg). Voice: copy
+`config.example.json` to `config.json` and point `kokoro_python` / `kokoro_model_dir` at a Kokoro-82M
+install (remanga's `.tools/venv-kokoro` and `checkpoints/kokoro_82m` work as they are). `config.json`,
+`projects/` and your meme pictures are gitignored; the repo is code only.
+
+## Adding a language
+
+Run `new <language>` - it works for any name. To make completeness **enforced**, add
+`topics/<language>.json` (`{"language": ..., "areas": [{"id", "name"}]}`); to run its code, add a branch to
+`codememe/runcheck.py`.
+
+See `.claude/skills/codememe-ops/SKILL.md` for the code map and what has bitten before.
