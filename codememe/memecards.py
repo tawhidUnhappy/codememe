@@ -96,8 +96,23 @@ def _classic(captions, w, h, image_name):
     return base
 
 
+def _contain(pic: Image.Image, w: int, h: int) -> Image.Image:
+    scale = min(w / pic.width, h / pic.height)
+    pic = pic.resize((round(pic.width * scale), round(pic.height * scale)))
+    card = Image.new("RGB", (w, h), (16, 16, 26))
+    card.paste(pic, ((w - pic.width) // 2, (h - pic.height) // 2))
+    return card
+
+
 def meme_image(meme: dict, w: int, h: int) -> Image.Image:
     template, caps = meme["template"], meme["captions"]
+    if template == "memegen":
+        try:
+            from .memegen import render_meme
+            return _contain(render_meme(meme["id"], caps, w), w, h)
+        except Exception as e:  # offline and not cached yet: a built-in layout carries the joke
+            print(f"warning: meme template {meme.get('id')} unavailable ({e}); using a built-in layout")
+            template = "choice" if len(caps) == 2 else "brain" if len(caps) == 4 else "classic"
     if template == "choice":
         return _choice(caps, w, h)
     if template == "brain":

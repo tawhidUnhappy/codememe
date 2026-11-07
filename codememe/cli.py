@@ -70,7 +70,11 @@ def cmd_lesson_prompt(a) -> None:
     taught_text = "\n".join(f"- {x['n']}. {x['title']}: {'; '.join(x['concepts'])}" for x in taught[-60:]) or "(nothing yet - this is the start)"
     neighbours = [n for n in range(max(1, first - 2), min(len(plan["lessons"]), numbers[-1] + 2) + 1)]
     memes = sorted(p.name for p in MEMES.glob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png")) or ["(none - plain cards are used)"]
+    from .memegen import catalog, curated
+    known = catalog()
+    memegen = "\n".join(f"- `{k}`: {v}" for k, v in curated().items() if not known or k in known)
     prompt = fill((PROMPTS / "lesson.md").read_text(), {
+        "MEMEGEN": memegen,
         "TITLE": project.meta["title"], "LANGUAGE": project.meta["language"],
         "RANGE": f"{numbers[0]}-{numbers[-1]}" if len(numbers) > 1 else numbers[0],
         "PLAN": _plan_text(plan, neighbours), "TAUGHT": taught_text,

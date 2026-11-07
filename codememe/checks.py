@@ -10,7 +10,7 @@ from .paths import MEMES, TOPICS, read_json
 from .runcheck import run_snippet
 
 SHOWS = ("meme", "code", "output", "takeaway")
-TEMPLATES = ("classic", "choice", "brain")
+TEMPLATES = ("memegen", "classic", "choice", "brain")
 MAX_WORDS = 125          # about 46 s at Kokoro's pace, leaving room for pauses under 59 s
 MAX_CODE_LINES = 12
 MAX_CODE_WIDTH = 34      # characters; wider code gets tiny on a phone
@@ -88,6 +88,20 @@ def check_lesson(lesson: dict, meta: dict, plan: dict | None, run_code: bool = T
     template = meme.get("template")
     caps = meme.get("captions")
     need = {"classic": (1, 2), "choice": (2, 2), "brain": (4, 4)}.get(template)
+    if template == "memegen":
+        from .memegen import catalog
+        known = catalog()
+        info = known.get(meme.get("id"))
+        if known and info is None:
+            bad.append(f'{where}: meme.id "{meme.get("id")}" is not a memegen template (use one from the list in the prompt).')
+        elif info and (not isinstance(caps, list) or len(caps) != info["lines"]):
+            bad.append(f'{where}: the "{meme["id"]}" meme needs exactly {info["lines"]} captions.')
+        elif not known:
+            warn.append(f"{where}: memegen catalog unavailable (offline) - meme.id not checked.")
+        need = (1, 8)
+        for c in caps if isinstance(caps, list) else []:
+            if len(str(c)) > 45:
+                bad.append(f'{where}: meme caption "{str(c)[:20]}..." is over 45 characters.')
     if need is None:
         bad.append(f'{where}: meme.template must be one of {", ".join(TEMPLATES)}.')
     elif not isinstance(caps, list) or not need[0] <= len(caps) <= need[1] or not all(str(c).strip() for c in caps):

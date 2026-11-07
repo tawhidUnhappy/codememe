@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import subprocess
-from functools import lru_cache
+from functools import cache, lru_cache
 
 from PIL import ImageFont
 
@@ -14,7 +14,8 @@ _MONO = ["DejaVuSansMono.ttf", "NotoSansMono-Regular.ttf", "LiberationMono-Regul
 _MONO_BOLD = ["DejaVuSansMono-Bold.ttf", "NotoSansMono-Bold.ttf", "LiberationMono-Bold.ttf"]
 
 
-def _find(names: list[str]) -> str | None:
+@cache
+def _find(names: tuple[str, ...]) -> str | None:
     for base in [ROOT / "assets" / "fonts"]:
         for name in names:
             if (base / name).exists():
@@ -29,5 +30,5 @@ def _find(names: list[str]) -> str | None:
 @lru_cache(maxsize=64)
 def font(kind: str, size: int):
     names = {"bold": _BOLD, "mono": _MONO, "monobold": _MONO_BOLD}[kind]
-    path = _find(names)
+    path = _find(tuple(names))
     return ImageFont.truetype(path, size) if path else ImageFont.load_default(size)

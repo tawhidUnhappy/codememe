@@ -19,10 +19,20 @@ with **one JSON block**, codememe checks it before saving anything, then renders
    JavaScript, Go - whichever toolchain is installed) and compares the output with what the lesson says.
    A meme never teaches code that does not work. Wrong reply -> a fix list to paste back to the LLM.
 4. **Render** - 1080x1920 (configurable), under 59 s: header with *Day n/N* and a progress bar, the meme
-   (built-in `choice`, `brain` and `classic` layouts, or your own template pictures in `assets/memes/`),
+   (real templates - Drake, Distracted Boyfriend, Galaxy Brain, ... - see below; or built-in `choice`, `brain` and `classic` layouts, or your own pictures in `assets/memes/`),
    a syntax-highlighted code card with the lines being explained lit up, the program's output, the
    takeaway, big captions, and Kokoro-82M narration (optional background music, ducked).
 5. **Upload** - `upload-prompt` -> titles, descriptions, tags and a pinned comment per video.
+
+## Memes
+
+Free, no key, no account: codememe uses the template data of the open-source
+[memegen](https://github.com/jacebrowning/memegen) project (MIT, ~200 templates). The LLM picks a template `id`
+and writes one caption per slot (the checker verifies the id exists and the slot count); the lesson prompt lists
+22 hand-checked templates with what each slot means. The captions are drawn locally from the template's own
+background picture and text-box positions, so there is no watermark and, once a template is downloaded
+(`global/memegen/`, gitignored), it works offline. Offline and not downloaded yet -> a built-in layout is used.
+The template pictures belong to their original owners (meme use, as on any meme site).
 
 ## Use it
 

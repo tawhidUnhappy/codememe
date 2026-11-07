@@ -21,9 +21,10 @@ Reply with ONE JSON block and nothing else:
       "title": "same as the plan",
       "hook": "THE ON-SCREEN HEADLINE, 10 words max",
       "meme": {
-        "template": "classic | choice | brain",
+        "template": "memegen | classic | choice | brain",
+        "id": "only for memegen: a template id from the list below",
         "captions": ["..."],
-        "image": "optional file name from assets/memes: {{MEME_FILES}}"
+        "image": "only for classic, optional: a file from assets/memes: {{MEME_FILES}}"
       },
       "code": {
         "source": "complete, runnable program, 12 lines max, 34 columns max",
@@ -42,7 +43,14 @@ Reply with ONE JSON block and nothing else:
 }
 ```
 
-Meme templates: **classic** = 1 or 2 captions (top / bottom text over a picture or card);
+**Prefer `"template": "memegen"`** - real, recognisable meme pictures. Give its `id` and exactly as many
+`captions` as the template has slots, each **45 characters max**, written for that slot (the order below
+says what each slot is). Use a different template for most lessons in your reply. Ids that work (any other
+memegen template id is accepted too, but only if you are sure it exists and you know its slots):
+
+{{MEMEGEN}}
+
+Built-in fallbacks: **classic** = 1 or 2 captions (top / bottom text over a picture or card);
 **choice** = exactly 2 captions (rejected thing on top, approved thing below); **brain** = exactly 4
 captions, getting smarter each level (the last is the "galaxy brain" answer).
 
